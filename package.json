@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "express": "^5.1.0",
+    "onnxruntime-node": "^1.22.0-rev",
     "ws": "^8.18.3"
   }
 }

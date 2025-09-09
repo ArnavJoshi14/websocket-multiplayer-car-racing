@@ -1,1 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+ai_bot/venv/
+
+# Node.js
 node_modules/
+
+# Models and logs
+ai_bot/lstm_model.onnx
+ai_bot/lstm_model.pt
+ai_bot/lstm_model.pth
+logs/
+
+# System
+.DS_Store
+Thumbs.db
