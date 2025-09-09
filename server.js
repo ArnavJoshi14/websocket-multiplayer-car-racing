@@ -19,7 +19,7 @@ let players = {};
 
 let aiEnabled = true;
 const AI_ID = "AI_PLAYER";
-let aiState = { posX: 0, posY: 0.5, posZ: 0, speed: 0, rot: 0 };
+let aiState = { posX: 99.99970336071864, posY: 0.5, posZ: -19.999519747146245, speed: -0.068, rot: 2.588279459712825 };
 let aiHistory = [];
 const SEQ_LEN = 20;
 let model = null;
