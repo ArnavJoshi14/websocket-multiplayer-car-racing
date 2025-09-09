@@ -91,6 +91,7 @@
                 // ## ADDED: HUD Element References ##
                 this.timerEl = document.getElementById('timer');
                 this.gameMessageEl = document.getElementById('gameMessage');
+                this.raceStartedSent = false; // To ensure we only send once
 
                 this.clock = new THREE.Clock();
 
@@ -444,10 +445,17 @@
                             this.gameMessageEl.textContent = 'GO!';
                         }
                         
-                        if (this.countdownValue <= 0) {
+                        // When countdown finishes
+                        if (this.countdownValue <= 0 && !this.raceStartedSent) {
                             this.gameState = 'racing';
                             this.raceStartTime = this.clock.getElapsedTime();
                             this.gameMessageEl.style.display = 'none';
+
+                            // Notify server that race has started
+                            if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                                this.ws.send(JSON.stringify({ type: 'raceStart' }));
+                            }
+                            this.raceStartedSent = true; // Prevent multiple sends
                         }
                         break;
                     
@@ -517,6 +525,11 @@
                     this.gameMessageEl.textContent = `Finished! Time: ${this.raceFinishTime.toFixed(2)}s`;
                     this.gameMessageEl.style.fontSize = '60px';
                     this.gameMessageEl.style.display = 'block';
+
+                    // Notify server so AI stops
+                    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                        this.ws.send(JSON.stringify({ type: 'raceFinish' }));
+                    }
                 }
             }
 

@@ -92,14 +92,16 @@ function broadcast(obj) {
   }
 }
 
+let raceStarted = false;
+let raceFinished = false;
+
 let lastAiTick = Date.now();
 function startAiLoop() {
-  const TICK_HZ = 10;
+  const TICK_HZ = 30;
   const TICK_MS = 1000 / TICK_HZ;
+
   setInterval(async () => {
-    const now = Date.now();
-    const dt = Math.min((now - lastAiTick) / 1000, 1 / 30);
-    lastAiTick = now;
+    if (!raceStarted || raceFinished) return; // <-- only move if race is active
 
     if (aiHistory.length === 0) {
       for (let i = 0; i < SEQ_LEN; i++) {
@@ -110,7 +112,7 @@ function startAiLoop() {
     const probsActions = await aiInferAction();
     const actions = probsActions || { up: true, down: false, left: false, right: false };
 
-    aiUpdatePhysics(actions, dt);
+    aiUpdatePhysics(actions, 1 / TICK_HZ);
 
     aiHistory.push([aiState.posX, aiState.posY, aiState.posZ, aiState.speed, aiState.rot]);
     if (aiHistory.length > SEQ_LEN * 2) aiHistory.splice(0, aiHistory.length - SEQ_LEN);
@@ -156,6 +158,12 @@ wss.on("connection", (ws) => {
   ws.on("message", (message) => {
     try {
       const data = JSON.parse(message);
+      if (data.type === 'raceStart') {
+        raceStarted = true;
+        raceFinished = false;
+      } else if (data.type === 'raceFinish') {
+        raceFinished = true; // AI will stop moving
+      }
       for (let id in players) {
         if (parseInt(id) !== playerId && players[id].readyState === WebSocket.OPEN) {
           players[id].send(JSON.stringify(data));
