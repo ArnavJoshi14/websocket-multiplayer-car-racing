@@ -17,7 +17,9 @@ const wss = new WebSocket.Server({ server });
 
 let players = {};
 
-let aiEnabled = true;
+let aiEnabled = true; // Toggle AI player
+
+// AI Player State
 const AI_ID = "AI_PLAYER";
 let aiState = { posX: 99.99970336071864, posY: 0.5, posZ: -19.999519747146245, speed: -0.068, rot: 2.588279459712825 };
 let aiHistory = [];
@@ -94,6 +96,7 @@ function broadcast(obj) {
 
 let raceStarted = false;
 let raceFinished = false;
+let playerCountdown = false;
 
 let lastAiTick = Date.now();
 function startAiLoop() {
@@ -102,6 +105,11 @@ function startAiLoop() {
 
   setInterval(async () => {
     if (!raceStarted || raceFinished) return; // <-- only move if race is active
+    if (playerCountdown) {  // <-- pause AI during player countdown
+      aiState = { posX: 99.99970336071864, posY: 0.5, posZ: -19.999519747146245, speed: -0.068, rot: 2.588279459712825 };
+      aiHistory = [];
+      return;
+    } 
 
     if (aiHistory.length === 0) {
       for (let i = 0; i < SEQ_LEN; i++) {
@@ -161,8 +169,11 @@ wss.on("connection", (ws) => {
       if (data.type === 'raceStart') {
         raceStarted = true;
         raceFinished = false;
+        playerCountdown = false;
       } else if (data.type === 'raceFinish') {
         raceFinished = true; // AI will stop moving
+      } else if (data.type === 'countdown') {
+        playerCountdown = true;
       }
       for (let id in players) {
         if (parseInt(id) !== playerId && players[id].readyState === WebSocket.OPEN) {

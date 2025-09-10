@@ -92,6 +92,7 @@
                 this.timerEl = document.getElementById('timer');
                 this.gameMessageEl = document.getElementById('gameMessage');
                 this.raceStartedSent = false; // To ensure we only send once
+                this.countdownSent = false; // To prevent multiple countdowns
 
                 this.clock = new THREE.Clock();
 
@@ -438,6 +439,12 @@
             update(dt) {
                 switch (this.gameState) {
                     case 'countdown':
+                        // notify server that player is in countdown
+                        if (!this.countdownSent && this.ws && this.ws.readyState === WebSocket.OPEN) {
+                            this.ws.send(JSON.stringify({ type: 'countdown' }));
+                            this.countdownSent = true;
+                        }
+
                         this.countdownValue -= dt;
                         if (this.countdownValue > 1) {
                             this.gameMessageEl.textContent = Math.ceil(this.countdownValue - 1);
